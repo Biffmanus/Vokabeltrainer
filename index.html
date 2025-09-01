@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vokabeltrainer Klasse 6</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Vokabeltrainer">
+    <link rel="apple-touch-icon" href="RandomFileName_3ec946ed-668d-4881-8124-9431e4b2174e.png">
+    <style>
+        body { font-family: Arial; background: #f0f8ff; text-align: center; padding: 10px; }
+        h1 { font-size: 1.5em; }
+        button { margin: 5px; padding: 10px; font-size: 1em; border-radius: 8px; }
+        #quiz, #results, #progress, #user-info { margin-top: 20px; }
+        .category-btn { background-color: #4CAF50; color: white; border: none; }
+        .answer-btn { background-color: #2196F3; color: white; border: none; }
+        #progress-bar { width: 80%; height: 20px; background: #ddd; margin: 10px auto; border-radius: 10px; }
+        #progress-fill { height: 100%; width: 0%; background: #4CAF50; }
+    </style>
+</head>
+<body>
+    <h1>📚 Vokabeltrainer Klasse 6</h1>
+    <div id="user-info">
+        <input type="text" id="username" placeholder="Dein Name">
+        <button onclick="startSession()">Start</button>
+    </div>
+    <div id="category-selection" style="display:none;">
+        <h2>Kategorie wählen</h2>
+        <button class="category-btn" onclick="startQuiz('school')">🏫 Schule</button>
+        <button class="category-btn" onclick="startQuiz('daily')">🏠 Alltag</button>
+        <button class="category-btn" onclick="startQuiz('vacation')">🌴 Urlaub</button>
+        <button class="category-btn" onclick="startQuiz('media')">📺 Medien</button>
+        <button class="category-btn" onclick="startQuiz('health')">💊 Gesundheit</button>
+        <button class="category-btn" onclick="startQuiz('technology')">💻 Technik</button>
+        <button class="category-btn" onclick="startQuiz('history')">📜 Geschichte</button>
+        <button class="category-btn" onclick="startQuiz('weather')">🌦️ Wetter</button>
+        <button class="category-btn" onclick="startQuiz('clothing')">👕 Kleidung</button>
+        <button class="category-btn" onclick="startQuiz('feelings')">😊 Gefühle</button>
+    </div>
+    <div id="quiz" style="display:none;">
+        <div id="question"></div>
+        <div id="answers"></div>
+        <div id="feedback"></div>
+        <div id="progress">
+            <div id="progress-bar"><div id="progress-fill"></div></div>
+        </div>
+    </div>
+    <div id="results" style="display:none;">
+        <div id="score"></div>
+        <div id="note"></div>
+        <div id="reward"></div>
+        <button onclick="reset()">Zurück zur Kategorieauswahl</button>
+    </div>
+    <script>
+        const vocab = {
+            school: [
+                { word: "go to school", options: ["zur Schule gehen", "Hausaufgaben machen", "Pause machen"], answer: "zur Schule gehen" },
+                { word: "teacher", options: ["Lehrer", "Schüler", "Tafel"], answer: "Lehrer" },
+                { word: "with", options: ["mit", "ohne", "neben"], answer: "mit" },
+                { word: "he", options: ["er", "sie", "wir"], answer: "er" }
+            ],
+            daily: [
+                { word: "have breakfast", options: ["frühstücken", "Mittag essen", "Abend essen"], answer: "frühstücken" },
+                { word: "watch TV", options: ["fernsehen", "lesen", "spielen"], answer: "fernsehen" },
+                { word: "in", options: ["in", "auf", "unter"], answer: "in" },
+                { word: "they", options: ["sie", "wir", "du"], answer: "sie" }
+            ],
+            vacation: [
+                { word: "go on holiday", options: ["in den Urlaub fahren", "zur Schule gehen", "arbeiten"], answer: "in den Urlaub fahren" },
+                { word: "hotel", options: ["Hotel", "Haus", "Zelt"], answer: "Hotel" },
+                { word: "at", options: ["bei", "in", "unter"], answer: "bei" },
+                { word: "I", options: ["ich", "du", "er"], answer: "ich" }
+            ]
+        };
+
+        let currentCategory = [];
+        let currentIndex = 0;
+        let score = 0;
+        let username = "";
+
+        function startSession() {
+            username = document.getElementById("username").value.trim();
+            if (username === "") {
+                alert("Bitte gib deinen Namen ein.");
+                return;
+            }
+            document.getElementById("user-info").style.display = "none";
+            document.getElementById("category-selection").style.display = "block";
+        }
+
+        function startQuiz(category) {
+            currentCategory = vocab[category];
+            currentIndex = 0;
+            score = 0;
+            document.getElementById("category-selection").style.display = "none";
+            document.getElementById("quiz").style.display = "block";
+            document.getElementById("results").style.display = "none";
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = currentCategory[currentIndex];
+            document.getElementById("question").innerText = `Was bedeutet "${q.word}"?`;
+            speak(q.word);
+            const answersDiv = document.getElementById("answers");
+            answersDiv.innerHTML = "";
+            q.options.forEach(option => {
+                const btn = document.createElement("button");
+                btn.className = "answer-btn";
+                btn.innerText = option;
+                btn.onclick = () => checkAnswer(option);
+                answersDiv.appendChild(btn);
+            });
+            updateProgress();
+        }
+
+        function checkAnswer(selected) {
+            const correct = currentCategory[currentIndex].answer;
+            const feedback = document.getElementById("feedback");
+            if (selected === correct) {
+                score++;
+                feedback.innerText = "✅ Richtig!";
+            } else {
+                feedback.innerText = `❌ Falsch! Richtige Antwort: ${correct}`;
+            }
+            currentIndex++;
+            if (currentIndex < currentCategory.length) {
+                setTimeout(() => {
+                    feedback.innerText = "";
+                    showQuestion();
+                }, 1000);
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById("quiz").style.display = "none";
+            document.getElementById("results").style.display = "block";
+            document.getElementById("score").innerText = `Du hast ${score} von ${currentCategory.length} richtig.`;
+            const percentage = score / currentCategory.length;
+            let note = 6;
+            if (percentage >= 0.9) note = 1;
+            else if (percentage >= 0.8) note = 2;
+            else if (percentage >= 0.65) note = 3;
+            else if (percentage >= 0.5) note = 4;
+            else if (percentage >= 0.3) note = 5;
+
+            let reward = "🏅 Teilnahme-Medaille";
+            if (note === 1) reward = "🏆 Gold-Pokal";
+            else if (note === 2) reward = "🥈 Silber-Medaille";
+            else if (note === 3) reward = "🥉 Bronze-Medaille";
+
+            document.getElementById("note").innerText = `Note: ${note}`;
+            document.getElementById("reward").innerText = `Belohnung: ${reward}`;
+            saveProgress();
+        }
+
+        function updateProgress() {
+            const fill = document.getElementById("progress-fill");
+            const percent = (currentIndex / currentCategory.length) * 100;
+            fill.style.width = percent + "%";
+        }
+
+        function reset() {
+            document.getElementById("category-selection").style.display = "block";
+            document.getElementById("results").style.display = "none";
+        }
+
+        function saveProgress() {
+            const data = {
+                score: score,
+                total: currentCategory.length,
+                date: new Date().toLocaleString()
+            };
+            localStorage.setItem("vocab_" + username, JSON.stringify(data));
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                speechSynthesis.speak(utterance);
+            }
+        }
+    </script>
+</body>
+</html>
